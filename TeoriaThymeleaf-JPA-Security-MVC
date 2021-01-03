@@ -1,0 +1,847 @@
+                       Que es Thymeleaf
+							   
+Thymeleaf  es un moderno motor de plantillas Java del lado del servidor para tanto entornos web como SPAs, cpaz de procesar HTML,XML,Javascript,CSS e incluso texto plano.
+Se usa mayormente para generar vistas HTML para aplicaciones web(sobre todo Spring Web).
+
+Thymeleaf te permite porcesar 6 tipos de templates, cada una de ellas se la denomina Template Mode:
+1-.HTML
+2-.XML
+3-.TEXT
+4-JAVASCRIPT
+5-CSS
+6-.RAW(PLAIN TEXT)
+
+                 Que es una Template Thymeleaf
+							   
+Una Template o Vista Thymeleaf es una pagina HTML con algunas expresiones Thymeleaf.
+Puede inlcuir contenido dinámico derivado de esas expresiones Thymeleaf.
+Thymeleaf puede acceder a código Java, a objetos Java, o a beans de Spring
+
+                        Thymeleaf Engine							   
+						
+La Maquina Thymeleaf parseará la Vista Thymeleaf.Usa el modelo de datos Java para reemplazar las posiciones marcadas(el DAO).Por ejemplo, si iteramos sobre una coleccion la engine creará nuevo HTML e inferirá los valores necesarios:
+
+En el modelo tenemos:
+List <Person> persons;
+
+En el HTML iteramos con Thymeleaf
+<tr th:each="person ${persons}">
+<td th:utext="${person.firstName}">...</td>
+<td th:utext="${person.lastName}">...</td>
+
+La maquina thmyleaf creará cunatos <tr> necesite con sus dos <td> por cada elemento de la coleccion,etc...
+
+      Donde se procesa una Template Thymeleaf?
+	  
+En una aplicacion web,Thymeleaf es procesado en el sevidor.
+Los resultados son incluidos en el HTML y devueltos al navegador.
+El usuario hará una petición, y el controlador la interceptará,hará una consulta al modelo, etc.. y devolverá la Thymeleaf Template como respuesta.
+
+                          Video 02 Hello World
+						  
+Usaremos Spring Boot para crear rápidamente una Spring Web App .Le damos el name y el package y agregamos spring WEB y Thymeleaf.
+Podemos ver en el POM que estnas las dos primeras.Creemos un controlador rapidamente, la forma de devolver una template es la misma que si fuera un .jsp:
+
+@Controller
+public class myclass{
+
+	@GetMapping("/hello")
+	public String funcionHello(Model model){
+	model.addAtributte("message","Hello world")
+	      return "helloworld";
+	}
+	
+Siempre que quiera mandar algo a la vista hay que usar el objeto de tipo Model y su método addAtributte(String key, object value)
+
+Este método controlador nos va a devolver la plantilla helloworld, aasi que la creamos en src/main/resources/templates
+
+Cada vez que Spring Boot encuentre la dependencia thymeleaf-starter automaticamente configurara un View Resolver para las templates thymeleaf(se refiere a la carpeta resources probablemente)
+dentro de los resources encontraremos la subcarpeta static para CSS,JS,imagenes...
+En templates si que van las vistas ,a si que creamos un archivo .html que debera llamarse como la devolucion del controlador,era 'helloworld'
+
+Una vez creado lo primero será enlazar con la web de Thymeleaf:
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+Despues ya podemos acceder a ese atributte que añadimos en el controlador a traves de su key:
+
+<body>
+<h1 th:text = "'Thymeleaf' + ${message} + 'App'"></h1>
+
+La forma de interpolar una variable es similar a Javascript,a demas hay que usar los atributos que el Template Engine provee(siempre usan th: xxxx).
+
+Arrancamos la aplicacion como Spring Boot App  y vamos al localhost:8080/hello y veremos nuestra Thymeleaf Template. Im-prezionanteh
+	
+
+             Video 03 Añadir Custom CSS y JS
+			 
+Por defecto Spring mirará en la carpeta static en busca de archivos estáticos.			 
+
+Creamos un proyecto nuevo y esta vez añadiremos CSS, asi que en la carpeta static creamos una subcarpeta css y un main.css.Tmb creamos la subcarpeta JS y un actions.js.
+
+Para añadir un archivo css la sintaxis será:
+<link th:href="@{/css/main.css} rel="stylesheet">
+En thymeleaf no coge por defecto el rel="stylesheet",asi que hay que ponerlo 
+
+La sintaxis,de echo es igual para cualquier importacion:
+<script th:src="@{/js/actions.js}"
+
+Basicamente es usar th:atributo y "@{ruta_relativa}"
+
+
+             Video 04 Añadir Bootstrap y Usar sus clases
+						  
+Hay dos formas de añadir Bootstrap, podemos añadir su CDN o descargar una libreria.
+
+Para usar la CDN basta con agregarla al HTML:
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
+
+Podemos tmb ir a esa URL y traernos el codigo minificado.Despues nos linkamos a ese .min(acuerdate que aqui @{} hace referencia al directorio raiz¿?)
+
+<link rel="stylesheet" th:href="@{/css/bootstrap.mim.css}">
+
+Tip: para comentar/descomentar en STS es con CTRL+MAYUS+C
+
+Añadir las clases se hace como siempre,con el atributo class,etc(ojo,que ya está Bootstrap 5)
+<table class="table table-dark table-hover ...
+
+                     Video 05 Condicionales en Thymeleaf
+					 
+Thyneleaf provee los condicionales if,unless y switch case de forma muy parecida a Java
+Los atributos th:if y th:unless nos permiten renderizar un elemento HTML dependiendo de la condicion proveida:
+Fijate en el uso del bucle th:each="item :${collection}"
+
+<tr th:each="user : ${users}">
+  <td th:text="${user.userName}"></td>
+  <td th:text="${user.email}"</td>
+  <td><a class="btn btn-primary" th:if="${user.role}=='ADMIN'">Update</a>
+  <a class="btn btn-danger" th:if="${user.role}=='ADMIN'">Delete</a>
+  <a class="btn btn-primary" th:unless="${user.role}=='ADMIN'">View</a>
+  </td>
+</tr>					 
+	
+Podemos ver un ejemplo muy sencillo arriba,donde iteramos con el atributo th:each="item:${collection}" y mostraremos botones con th:if="condicion a evaluar" solo si esa condicion se resuelve en true.
+
+Tip:fijate como todo el codigo de thymeleaf esta en los valores de atributos HTML, con lo que va entre comillas dobles, se interpola como en Javascript y se usa th: 
+
+Unless es la negacion de esa condicion, es decir que todos los que no la cumplan dan true, y el que la cumpla da false(justo lo contrario a un if)
+Podria traducirsr por, si no cumples la condicion de la expresion das como valido
+
+Si hay mas de dos posibles resultados al evaluar una expresion podemos usar los taributos th:switch y th:case para renderiza condicionalemente eleentos HTML:
+
+<div th:switch="${user.role}">
+  <p th:case="ADMIN">User is administrator</p>
+  <p th:case="MANAGER">User is a manager</p>
+  <p th:case="GUEST">User is a guest</p>
+  <!--* for default case -->
+  <p th:case="*">User is something strange</p>
+</div> 	
+
+Para asignar un arespuesta por defecto podemos usar el comodin *, y si no cumple las anteriores simple cumplira ésta.
+
+Para comprobar esto simplemente creo un controlador, le paso una ruta a un metodo GET y devuelbo la plantilla, le paso algunos datso falsos tmb:
+
+	@GetMapping("/usuarioIf")
+	public String devuelvePlantilla(Model model) {
+		List<User> users = new ArrayList();
+		users.add(new User("Ramesh","ramesh@gmail.com","ADMIN"));
+		users.add(new User("tom","tom@gmail.com","ADMIN"));
+		users.add(new User("jonh","jonh@gmail.com","ADMIN"));
+		users.add(new User("sara","sara@gmail.com","ADMIN"));
+		model.addAttribute("users", users);
+				
+		return "plantilla05";
+		
+creo plantilla05.html y ya puedo usar los th:if ...
+
+Recuerda:UNLESS lo puedo traducir como SI NO ES...
+Es la negacion del cumplimiento de la condicion.
+
+      06 WebApplication con Tymeleaf,Spring MVC, JPA,Hibernate
+	  
+Crearemos una aplicacion web  CRUD para la entidad Student.Usaremos SpringBoot y thymeleaf.Usaremos tmb una database H2 para un rapido setup.
+H2 es un gestor de bases de datos relacional open-source creado enteramente en Java,puede ser embebido en aplicaciones Java o correr en el cliente.
+Se usa mayormente para desarrollo y testing.
+
+						PASO 1 Crear el proyecto
+						
+Usaremos h2database, spring data JPA(este es el que maneja a Hibernate, luego lo vamos a usar para hacer la persistencia) thymeleaf, spring Web pues hay que salir a la web y dev tools para autorefresh
+
+tip: la dependencia spring-boot-starter-web(es decir, Spring Web) se usa tanto para Apps Web como para aplicaciones RESTFULL
+tip:anotar a una EL en thymeleaf con # la hará buscar en el.properties por esa variable de entorno
+<h2 th:text="#{app.title}"> <- hay que crear esa app.title en el properties.
+Spring Boot provee auto-configuration support para las siguientes template engines:
+FreeMarker-Groovy-Thymeleaf-Mustache
+Se recomienda no usar ya JSP, hay limitaciones conocidas al usarlos con contenedores servlets embebidos.
+	  
+	                     PASO 2 Capa Modelo(Entidad)
+						 
+Creamos la entidad Student, necesitaremos las dependencias para validaciones(buscar en Maven)
+
+                      PASO 3Capa Repositorio
+
+Creamos el pertinente paquete y la interfaz.Esta interfaz va a implementar CrudRepository en vez del JpaRepository.
+Tmb va a declarar un metodo para su posterior implementacion
+Tip: Crud Repository es un ancestro de JPA asi que heredar JPA dara vision sobre Crud, ya que JPA hereda de PagingAndSorting y esta hereda de Crud.
+
+@Repository
+public interface StudentRepository extends JpaRepository<Student, Long>{
+
+	abstract List<Student> findByName(String name);
+}
+
+
+                    PASO 4 Capa Controlador					  
+					
+Fijate como este personajillo trae el Bean por un constructor:
+@Controller
+@RequestMapping("/students")
+public class StudentController {
+
+	
+	private final StudentRepository studentRepository;
+	
+	@Autowired
+	public StudentController(StudentRepository studentRepository) {
+		this.studentRepository = studentRepository;
+	}					
+						 
+Fijate en el uso de @PathVariable y como captura los errores con .orElseThrow
+
+
+	//busca por id, o lo encuentra y lo borra y actualiza todos los students o lanza error
+	@GetMapping("delete/{id}")
+	public String deleteStudent(@PathVariable("id")Long id,Model model) {
+		Student student = studentRepository.findById(id)
+				.orElseThrow(()-> new IllegalArgumentException("Invalid Student id:" + id));
+		studentRepository.delete(student);
+		model.addAttribute("students", studentRepository.findAll());
+		return "index";
+	} 						 
+	
+Ver controlador del proyecto para ver el resto.
+
+        CAPA VISTAS (th:action th:object ...
+
+Lo mas importante de los siguientes formularios es redireccionarlos con thymeleaf y hacerles el data-binding a la entidad:
+
+
+<form action="#" th:action="@{/students/add} th:object="${student} method="post">
+
+1-. Para redireccionar a una URL del proyecto debemos usar th:action="@{/rutA/SUBRUTA}" <- acuerdate que la @ es para recursos
+
+2-.Para persistir el formulario como un objeto usaremos el atributo th:object="${student}" <- donde student es el valor de la key que le hayamos dado.
+
+Para crear un input con validaciones usamos Bootstrap th:if , th:field...:
+<div class="form-group" col-md-8>
+								<label for="name" class="col-form-label">Name 
+								<input
+									type="text" th:field="*{name}" class="form-control" id="name"
+									placeholder="Name"><span
+									th:if="${#fields.hasErrors('name')}" th:errors="*{name}"
+									class="text-danger"></span>
+								</label>
+
+							</div>
+							
+Fijate como debemos marcar cada control con th:field="*{email}" y despues comprobar los errores con th:if="${#fields.hasErrors('email')}" th:errors="*{name} " Ojo es th:if="${# <- simbolo numeral primero}"	
+
+Veamos el index.html que lista todos los estudiantes:
+
+De esta vista lo mas importante es que haremos un th:each por cada registro y que mandaremos de vuelta el id:
+	<tbody>
+									<tr th:each="student : ${students}">
+										<td th:text="${student.name}"></td>
+										<td th:text="${student.email}"></td>
+										<td th:text="${student.phoneNo}"></td>
+										<td><a th:href="@{/students/edit/{id}(id=${student.id})}"
+											class="btn btn-primary"><i class="fas fa-user-edit ml-2"></i></a></td>
+										<td><a
+											th:href="@{/students/delete/{id}(id=${student.id})}"
+											class="btn btn-primary"><i class="fas fa-user-times ml-2"></i></a>
+										</td>
+								</tbody>						
+								
+Fijate como usamos el <a th:href="@{/student/edit/{id}}(id=${student.id})"> Icono... y como redirigimos en thymeleaf y como mandamos una ruta dinamica ademas diciendole a que corresponde el id(muy interesante)
+Debemos usar un th:href porque vamos a usar sintaxis thyemleaf.No nos vale sólo con href.Es facilisimo mandar parametros por la URL.
+
+Seguir con este youtuber y hacer pruebas propias además de anvanzar con la seguridad.
+								
+								SpringSecurity(Adictos al trabajo)
+								
+En cuanto añadamos la dependencia de SpringSecurity no podremos acceder a ningun endpoint, se nos mostrará una ventana de login(el usuario por defecto es user y en la consola tendremos una password autogenerada)
+
+IMPORTANTE: podemos crear nuestras propias credenciales y hardcodear la seguridad, algo muy útil debido a que la password autogenerada será complicada:
+
+spring.security.user.name=jonathan 
+spring.security.user.password=1234								
+
+Van en el aplication.properties.Esta seguridad esta por defecto y la proporciona Spring,sin embargo, deberiamos crearla y reforzarla.
+
+						CREANDO SEGURIDAD PERSONALIZADA
+						
+Para crear una clase de seguridad personalizada, necesitamos usar la anotacion @EnableWebSecurity y extender la clase WebSecurityConfigurerAdapter  en nuestra clase para poder redefinir algunos de los métodos proporcionados.Spring Security te fuerza a hashear las contraseñas para que no se guarden como texto plano también.
+Con motivos didacticos usaremos PasswordEncoder, pero para proyectos serios se recomienda algo mas serio como BCryptPasswordEncoder.
+
+         1.1Autenticación					
+		 
+Vamos a utilizar el método configure que recibe como argumento una instancia de tipo AutenticationManagerBuilder.
+Este objeto tiene diferentes métodos como jdbcAuthentication, idapAuthentication, userDetailsService... pero usaremos inMemoryAuthentication para este ejemplo sencillo.Como su nombre indica, las credenciales del usuario se guardarán en memoria:
+
+@EnableWebSecurity
+public class webSecurity extends WebSecurityConfigurerAdapter{
+
+ @Override
+ protected void configure(AutenticationManagerBuilder auth) throws Exception {
+ auth.inMemoryAuthentication()
+		.withUser("user1").password("123").roles("APRENDIZ")
+		.and()
+		.withUser("user2").password("123").roles("SENSEI");
+ 
+ }//fin método override
+ 
+ @Bean
+ public PasswordEncoder getPasswordEncoder(){
+    return NoopPasswordEncoder.getInstance();
+ }
+ 
+1.2 Autorizacion
+ 
+ Para definir que recursos deben estar securizados y cuales no vamos a usar el mismo método configure pero esta vez recibe un objeto HttpSecurity por argumento.
+ 
+ @Override
+ public void configure(HttpSecurity http) throws Exception {
+   http.authorizeRequests()
+  .antMatchers("/**").hasRole("SENSEI")
+  .and().formLogin();
+ }
+ 
+Si intentamos iniciar sesion con user2 accederemos correctamente a cualquier recurso,ya que hemos otorgado permisos a cualquiera que sea SENSEI.Incluso podemos crear varios endpoints y otorgar distintas restricciones como vemos en el siguiente ejemplo.
+DEBEMOS TENER EN CUENTA QUE LAS REGLAS MÁS RESTRICTIVAS DEBEN ESTAR EN LA PARTE SUPERIOR
+
+Ejemplo más restrictivo:
+@Override
+public void configure(HttpSecurity http) throws Exception{
+http.authorizeRequests()
+	.antMatchers("/sensei").hasRole("SENSEI")
+	.antMatchers("/aprendiz").hasRole("APRENDIZ").
+	antMatchers("/").permitAll().and().formLogin();
+}
+Si queremos usar mas de un ROL, algo muy común, podemos usar hasAnyRole().Tambien podemos añadir filtros, cuyo objetivo es interceptar las peticiones y cada uno tiene su propia responsbilidad(añadiremos uno mas adelante)
+.hasAnyRole("SENSEI","APRENDIZ","ROL1")
+.addFilterBefore()
+.addFilterAfter();
+
+1.3 UserDetailService
+
+Vamos a configurar SpringSecurity para que dependa de UserDetailService, es un servicio que nos permitirá cargar datos específicos del usuario.
+
+@EnableWebSecurity
+public class webSecurity extends WebSecurityConfigurerAdapter{
+
+   @Autowired
+   private MyUserDetailService myUserDetailService;
+   //habrá que crear esta clase
+   
+   @Override 
+   protected void configure(AuthenticationManagerBuild auth) throws Exception {
+   auth.userDetailsService(myUserDetailService);
+   }
+ }
+ 
+Esta vez ya no usamos una autenticacion local, sino que va a ser mas profesional.Logicamente deberemos crear nuestras clases UserDetailService(esta es el servicio) y otra UserDetails.La clase estereotipada como Service debera heredar de UserDetailService y desarrollar su metodo loadByUsername:
+
+@Service
+public class MyUserDetailService implements UserDetailService{
+   @Override
+   public UserDetails loadByUsername(String username) throws UserNameNotFoundException {
+   return new MyUserDetails(username);
+   }
+UserDtails es una interfaz, cuando la implementamos(lo haremos en MyUserDetails) podremos sobreescribir varios métodos.Voy a crear un campo username para obtener el nombre del usuario.
+El resto de los métodos tendrá valores harcodeados.el metodo .getAuthorities() devuelve los permisos otorgados al usuario, en este caso le añadiré solo el rol SENSEI.La contraseña tendrá el valor 'pass':
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class MyUserDetails implements UserDetails {
+    private String username;
+ 
+    @Override
+    public Collection getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_SENSEI"));
+    }
+ 
+    @Override
+    public String getPassword() {
+        return "pass";
+    }
+ 
+    @Override
+    public String getUsername() {
+        return username;
+    }
+ 
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+		 @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+ 
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+ 
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+	
+Hagamos un repaso hasta ahora del flujo de ejcucion.Cuando arrancamos la aplicacion...:
+1.Se carga la configuracion de WebSecurity
+2.Cuando el usuario introduce sus credenciales y estas se envian, el filtro de autenticacion de Spring Security intercepta la petición y se crea un objeto UsernamePasswordAuthenticationToken con las credenciales.
+3- loadByUsername() recibe el nombre del usuario
+4Se crea un objeto MyUsersDetails con el nombre de usuario enviado y todo lo demas con valores harcoded y se compara MyUsersDetails con el objeto UsernamePasswordAuthenticationToken
+5.Si todo es correcto se accede al recurso, en caso contrario, permiso denegado
+}
+Seguir investigando.El aproximamiento de ByteCode fue exitoso.
+
+                     Que es H2 Database y como acceder a ella 
+					 
+Es un gestor Java Sql ultrarrápido embebido que se usa en memoria.Esto lo hace perfecto para desarrollo.
+El que se in-memory significa que cada vez que cerremos la aplicacion se borraran los datos y estara limpia de datos cada vez que la arranquemos
+Habra que acompañar esta dependencia de Spring Data JPA o Spring Data JDBC
+Para poder ver a H2 vamos al application.properties  y habilitamos algunas cosas:
+spring.h2.console.enabled=true <- estara en false
+
+despues simplemente ejecutamos la aplicacion y visitamos localhost:8080/h2-database
+
+MAS OPCIONES
+spring.datasource.url=jdbc:h2:mem:testdb <- por defecto 
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=password
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+
+Si queremos que deje de ser volatil nuestra base de datos podemos cambiara un comportamiento basado en almacenamiento de archivos:
+spring.datasource.url=jdbc:h2:file:/data/demo <- cambiar mem por file (y donde los guarda¿?)
+
+Incluso manipular esa interfaz no cambiara que H2 es un gestor en memoria,todo lo que hagamos se borrara cad vez que se cierre la aplicacion.  	
+
+Para acceder al login de la IGU ir a http://localhost:8080/h2-console,				 
+Microservicios: una aplicacion se divide en varias miniaplicaciones, amenudo son api rest que se comunican entre ellas, creando entre todas ellas la aplicacion en si.A cada miniaplicacion se le suele llamar servicio,por eso los microservicios.Crear una aplicacion asi tiene varias ventajas como escalabilidad  ,testeo,independencia de tecnologias.
+Las desventajas es que la arquitectura y despliegue de la aplicacion es mas compleja
+
+                          Ejemplo Students CRUD mejor Audio 36:12
+						  
+LA URL es https://www.youtube.com/watch?v=pv6rlayhW4w&feature=youtu.be
+
+Importante : Spring Data Jpa usa Hibernate internamente
+Tip: el artifactId no es nada mas que el nombre de la aplicacion.Creamos pues el proyecto con las dependencias que vamos a usar  y ahora vamos a crear la estructura de paquetes.		
+Si no suministramos la anotacion @Column por defecto le dará el nombre del campo en la base de datos.
+
+Cuando creemos el repo debemos crear un metodo que busque por nombre:
+
+@Repository
+public interface StudentRepository extends JpaRepository<Student, Long>{
+
+	List<Student> findByName(String name);
+	
+}		
+
+Tip:cada vez que haga una busqueda por Id hay que capturar el error de que no sea un Id valido.Ademas cada vez que modifiquemos o borremos debemos actualizar la Lista de estudiantes		  
+
+Tip:En los formularios que se use thymeleaf hay que usar dos atributos propios en la etiqueta <form>:
+<form th:action="@{/student/add}" th:object="${student}" method="post">
+Estos dos atributos son donde redirecciona rel formulario y el objeto con el que hacer la data-binding
+En cada input hay que hacer el data-binding con la propiedad del objeto tmb:
+<input th:field="*{name}" || <input th:field="*{email}" ...
+
+La validacion la podemos hacer con un span:
+<span th:if="${#fields.hasErrors('name')}" th:errors:"*{name}" class="text-danger">
+Es bastante simple y personalizable,este es sólo un ejemplo.
+
+En el index para iterar usaremos la directiva de thymeleaf each:
+<th:block th:each="student :${students}">
+Fijate que la inerpolacion va dentro del string,no abarca toda la directiva
+
+Para mandar parametros por la barra de direcciones con thmeleaf tenemos que usar la directiva th:ref sustituyendo a href:
+<a th:ref="@{/students/edit/{id}(id=${student.id})}" class...>
+
+Fijate como al no ser un servicio REST solo hay que fijarse en si la vista recibe un formulario o si muestra algo,asi ,incluso aunque estamos borrando, lo que hace el controlador es devolver una vista por Get:
+
+	@GetMapping("/delete/{id}")
+	public String deleteStudent(
+		@PathVariable("id")Long id,
+		Model model
+
+Solo cambiará a POST si recibe un formulario ese controlador.En una APLICACION WEB SOLO SE MANEJAN LOS VERBOS GET Y POST,NUNCA SE VA A USAR PUT NI DELETE EN ESTE TIPO DE APLICACION.
+
+Tip: en el properties debe ir el driver,la url, el usuario y al pasword:
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/restfull-spring?useSSL=false
+spring.datasource.username=root
+spring.datasource.password= 
+
+aparte tmb debe ir
+spring.jpa.database=MYSQL
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update
+
+Tip: la dependencia Spring Web es la que tiene embebido el Tomcat.
+
+Podemos pasar ma de una URL para que haga match y devolver la vista pertinente metiendolas entre llaves(un Array de Strings en Java)
+
+@GetMapping({"/","hello"}
+
+Spring automaticamente configura el Viewresolver para las vistas de thymeleaf,aunque podriamos cambiar en el properties donde ubicar las vistas,etc pero no parece muy util  esto
+
+                  LoginWith MySQL and Security Video 09 Parte I
+				  
+Creacion de un login con Spring Boot, Spring Scurity, Thymeleaf, Hibernate y MySQL	.Los usuarios deberan ser capaces de :
+Registrarse en la aplicacion
+Logearse en la aplicacion usando credenciales registradas
+
+Vamos a dividir la aplicacion en partes:
+1-crear y configurar el proyecto-Setup de la Database
+2-.Crear entidades JPS-Mapeo Many to many de User y Role
+3-Implementacion del backend para el registro(Repo,Servicio y Controlador
+4-Implementacion del frontend para el registro(thymeleaf)
+5-Configuracion de Spring Security
+6-.Implementacion del backend para el login			  
+7-Implementacion del frontend para el login
+8-Logout y Pagina home
+
+Creamos el proyecto y de momento comentamos la dependencia de la seguridad,anulandola.
+Vamos al archivo properties y lo seteamos, aparte le añadiremos:
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type=TRACE
+esto es para ver los logs de hibernate¿?
+
+                       Login Parte II Entidades
+					   
+Estableceremos una relacion ManyToMany ya que un usuario puede tener varios roles y un rol puede tener varios usuarios.En la entidad User solo daremos nombre a las columnas firt_name y last_name, ademas, el email debe ser unico:
+
+@Entity
+@Table(name="user", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
+public class User {
+
+	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	
+	@Column(name = "first_name")
+	private String firstName;
+	
+	@Column(name = "last_name")
+	private String lastName;			
+
+Fijate en la forma de agregar uniqueConstraints. Creamos la entidad Role:
+
+@Entity	
+@Table(name = "role")
+public class Role {
+
+	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	
+	private String name;
+Es tiempo de establecer esta relación ManyToMany entre estas dos entidades.Para ello usremos anotaciones JPA.En este caso van a ser unidireccionales.
+Cada vez que pidmos un User tmb queremos popular los roles asi que usaremos el fetchtype en EAGER
+Ademas,cada vez que cambiemos algo en el User tmb sera reflejado en cascada:
+
+@ManyToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
+@JoinTable(
+	name = "users_roles",
+	joinColumns = @JoinColumn
+	(name="user_id", referencedColumnName = "id"),
+	inverseJoinColumns = @JoinColumn
+	(name="role_id", referencedColumnName = "id"))
+private Collection<Role> roles;
+
+Esta ultima anotacion se puede resumir en: se va a a crear una tabla de union llamada user_roles con un campo user_id que referencia al id de esta tabla y otro campo role_id que referenica a tmb el campo id de la otra tabla
+Nota: aprender mas sobre @JoinTable	
+Si ejecutamos la aplicacion deberia crear tres tablas,User,user_roles(porque lo hemos elegido nosotros en @JoinTable(name="nombre de esa tercera tabla") y por supuesto, la tabla Roles
+
+                                              Parte III
+											  
+Crearemos el bckend para la implementacion del registro( repositorio, servicio y controlador).
+Creamos el paquete repositoy y la interfaz de acceso a las operaciones CRUD.
+Despues creamos el paquete Service con la clase UserService y creamos otro paquete llamado web con todos los controladores y las clases DTO(Data Transfer Object)	
+Este objeto transferira datos entre el servidor y el cliente y viceversa.
+En vez de pasar una única pieza de información, podemos pasar grandes cantidades  de información con este objeto.
+Esta clase es una representacion de la entidad User,al estilo que usó ByteCode con MNota:
+
+public class UserRegistrationDTO {
+
+	private String firstName;
+	private String lastName;
+	private String email;
+	private String password;
+										  
+En la interfaz UserService creamos un metodo save que guardará este tipo de instancias:
+
+public interface UserService {
+	User save(UserRegistrationDTO registrationDTO);
+}
+
+Implementamos esta interfaz, ya si en la clase Service y desarrollamos este metodo abstracto:
+
+@Service
+public class UserServiceImpl implements UserService{
+
+	@Autowired
+	private UserRepository userRepository;
+	
+	@Override
+	public User save(UserRegistrationDTO registrationDTO) {
+	User user = new User(
+			registrationDTO.getFirstName(),
+			registrationDTO.getLastName(),
+			registrationDTO.getEmail(), 
+			registrationDTO.getPassword(), 
+			Arrays.asList(new Role("ROLE_USER")));
+	
+	return userRepository.save(user);
+	}
+
+simplemente guardara ese User con los datos de la clase DTO. Ahora es tiempo de crear el controller:
+
+@Controller
+@RequestMapping("registration")
+public class UserRegistrationController {
+	
+	@Autowired
+	private UserService  userService;
+		
+	public String registerUserAccount(
+			@ModelAttribute("user")UserRegistrationDTO registrationDTO) {
+		userService.save(registrationDTO);
+		
+		return "redirect:/registration?success";
+	}
+
+Cabe destacar que al redireccionar podemos mandar un QueryParam, en este caso mandamos success:
+>> return "redirect:ruta?param"
+cabe destacar tmb que no implementamos la clase UserServiceImpl sino la interfaz para favorecer el loose coupling y que usamos la anotacion @ModelAttribute("user") para enlazar el formulario entero a un objeto UserRegistrationDTO:
+
+<form:form modelAttribute="persona"> esto en el formulario
+public String formularioPersona(@ModelAttribute("persona") Persona persona) <- en el controlador hacemos el dat-binding,en nuestro caso seguramente lo recogemos en una instancia de UserRegistrationDTO
+
+@ModelAttribute realiza un binding de los datos que tenemos en un formulario de Spring con la capa backend
+
+               JavaBestPractices Code for Interface not for Impl
+			   
+Trabajar con la interface en vez de con la clase que la implemente hara que al implementar la interfaz, si agregamos una nueva clase, tmb implementemos esa clase.
+trabajar con interfaces nos hara tener sobre cualquier clase que implemente esa interfaz en el futuro
+
+1.Siempre usa el tipo de la interfaz como referencia de tipo
+2.Siempre usa el tipo de la interfaz como return type
+3.Siempre usa interface types como argumento de los metodos.	
+
+Un ejemplo sencillo seria una interfaz Shape y dos clases que desarrollan su metodo abstracto draw():
+
+
+interface Shape{
+	void draw();
+}
+
+class Circle implements Shape{
+	@Override
+	public void draw() {
+		System.out.println("drawing circle...");
+	}
+}
+
+class Rectangle implements Shape{
+	@Override
+	public void draw() {
+		System.out.println("Drawing rectangle...");
+	}
+} 		   
+
+Punto 1.Siempre usar la interfaz como tipo de referencia:
+
+Shape shape = new Circle(); <- no usar Circle circle = new Circle
+
+Fijate que ademas podriamos cambiar new Circle por new Rectangle o new Square...
+
+Punto2: siempre retorna el tipo de la interfaz y no de la subclase:
+
+	private void print(Shape shape) {
+		shape.draw();
+	}
+	
+List<String> lista = new ArrayList... <- bien
+ArrayList<String> lista = new ArrayList... <- mal
+
+                    Parte IV Frontend para el Registro
+					
+Vamos a hacer el frontend con una thymeleaf template.Recuerda que Spring configura automáticamente el Viewresolver y sabe donde estarán las plnatillas thymeleaf,pero se debia hacer antes a mano.  Creamos una plantilla "registration" y su controlador.en la navbar en su navbar-brand creamos un enlace a Home, como estamos en thymeleaf usaremos th:href:
+<a class="navbar-brand" th:href="@{/}">Registration and
+					Login Module</a>
+
+Crearemos un condicional para mostrar un div.Fijate como podemos acceder al QueryParam con la propiedad param:
+  <!-- success mesage -->
+   <div th:if="${param.success}">
+   <div class="alert alert-info">You've successfully registered into our app</div>
+   </div>					
+ESto venia de "redirect:/registration?message"
+
+El formulario lo regirigimos con th:action y como objeto para vincularle vamos a tener que crear un metodo en el controlador:
+
+<form th:action="@{/registartion}" th:object="${user}" method="POST">		
+
+Ese user no le tenemos,debemos crear ese ModelAtribute.Esto parece que es asi porque no vamos a trabajar con la Entidad:
+	@ModelAttribute("user")
+	public UserRegistrationDTO userRegistrationDTO() {
+		return new UserRegistrationDTO();
+	}
+	
+Todo esto lo podemos simplificar pasandole el recipiente (ese user) a traves del modelo, en ve< de usar este metodo
+	@GetMapping
+	public String showRegistrationForm(Model model) {
+	model.addAttribute("user",new UserRegistrationDTO());
+		return "registration";
+	}
+					
+Se como sea el formulario debe obtener un atributo a traves del modelo llamado user(como el que tenga en th:object)					
+En los campos debebmos hacer el data-binding a las propiedades de ese objeto:
+ <input type="text" id="firstName" placeholder="Name" 
+   th:field="*{firstName}" class="form-control"> es firstName porque se llama asi en UserRegistrationDTO
+   
+Tip: al trabajar con thymeleaf el atributo th:href va a estar antes que el href de HTML,con él es suficiente:
+<a th:href="@{/login}">Login here</a>
+
+            PARTE V SPRING SECURITY CONFIGURATION
+			
+Cada vez que Spring Boot encuentra en dependencia Spring Security incluirá una login page en el proyecto y proporcionará un usuario y una password.
+Podemos cambiar estos valores en el properties,incluso añadirle un ROL(por defecto es ADMIN):
+spring.security.user.name = ramesh
+spring.security.user.password	= password
+spring.security.user.roles=USER		
+
+Sin embargo esto tampoco es muy profesional, asi que toca configurarla.Creamos un paquete config y una clase que herede de webSecurityConfigurerAdapter y la anotamos como clase con Configuraciones,pues tendrá un @Bean en su interior,etc...
+
+@Configuration 
+@EnableWebSecurity
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http
+		.authorizeRequests() //autoriza en base a los siguientes parametros
+		.antMatchers(       //estas urls,si coinciden... 
+				"/registration**",
+				"/js/**",
+				"/css/**",
+				"/img/**"
+				)
+		.permitAll() //<- permite las anteriores
+		.anyRequest() //cualquier otra peticion
+		.authenticated() //debe ser autenticada
+		.and()
+		.formLogin() //crea un login en esa ruta por defecto
+		.loginPage("/login") //especificamos la ruta,aunque iba a ser ahi ¿?
+		.permitAll() //permite las URLS anteriores
+		.and()
+		.logout() //permitimos hacer logout
+		.invalidateHttpSession(true)
+		.clearAuthentication(true)
+		.logoutRequestMatcher(new AntPathRequestMatcher("/logout")) //url del logout
+		.logoutSuccessUrl("/login?logout") //redireccionamos a login y mandamos una flag
+		.permitAll();		
+	}
+	
+Debemos crear el metodo que codifica la password, que devolverá el Bean cuando lo pidamos:
+	//Metodo para codificar la password
+	@Bean
+	public BCryptPasswordEncoder PasswordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+	
+Tmb vamos a necesitar otro Bean de este método:
+@Bean
+public DaoAuthenticationProvider authenticationProvider() {
+		DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
+		auth.setUserDetailsService(userService);
+		auth.setPasswordEncoder(passwordEncoder());
+		return auth;
+	}
+
+Esto hará que la interfaz userService tenga que heredar de la clase abstracta UserDetailsService y que la clase que implementa esta interfaz desarrolle el método loadByUserName()
+
+Lo haremos en otra parte.Ahora vamos a pasar este metodo authenticationProvider al metodo configure que nos falta.
+Este metodo se vuelve muy simple al estar usando un DaoAuthenticationProvider
+
+@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.authenticationProvider(authenticationProvider());
+	}	        
+	
+Recapitulemos: descomentamos la seguridad,creamos la clase de configuracion de seguridad,sobreescribimos sus dos metodos configure.Configuramos el acceso a las rutas segun la logica del negocio
+
+						PARTE 6 BACKEND DEL LOGIN
+						
+Al usar la interfaz UserDetailService tenemos que desarrollar el metodo loadByUserName que devuelve una instancia de UserDetails.Debemos llenar esa instancia y Spring Security se encargará del resto.					
+Lo que cargamos con el metodo es un User de la base de datos,despues llenamos el objeto UserDetails
+
+Primero vamos a volver a la interfaz del repositorio y creamos un metodo abstracto que busque por email:
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Long>{
+
+	User findByEmail(String email);
+}
+
+Esto lo hacemos porque en el login vamos a insertar un email y una passwor, no un username.
+Vamos a necesitar un método que convierta los roles en autoridades porque Spring Security espera Authorities.
+
+	//metodo que mapea los roles a Authorities
+	private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<Role> roles){
+	
+		return roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());
+	
+}
+Podemos devolver cualquier coleccion, de echo es lo que pide el argumento del constructor, cualquier coleccion que herede de GrantedAuthority.
+
+Ya podemos rellenar el UserDetails:
+
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+	
+		User user = userRepository.findByEmail(username);
+		if(user == null) {
+			throw new UsernameNotFoundException("Invalid username or password");
+		}
+		
+		return new org.springframework.security.core.userdetails.User(
+				user.getEmail(),
+				user.getPassword(),
+				mapRolesToAuthorities(user.getRoles())
+				);
+		
+} Fijate como user.GetRoles devuelve una Collection
+
+Vamos al paquete de los controladores y creamos otro sólo para las vistas de thymeleaf:
+@Controller
+public class MainController {
+
+	@GetMapping("/login")
+	public String login() {
+		return "login";
+	}
+}	
+
+En el anterior video creamo el metodo encriptador, pero aun nolo hemos usado con el DTO:
+@Autowired
+private BCryptPasswordEncoder passwordEncoder;
+	
+passwordEncoder.encode(registrationDTO.getPassword()), <- al llamar al getter la encriptamos.
+
+                        PARTE 7 FRONTEND para el LOGIN	
+INVESTIGAR TABLAS RELACIONADAS
